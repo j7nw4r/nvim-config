@@ -56,6 +56,10 @@ map("n", "<leader>wx", ":close<CR>", { desc = "Close current split window" })
 -- Terminal
 map("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 
+-- Git
+map("n", "<leader>gb", ":Gitsigns blame_line<CR>", { desc = "Git blame line" })
+map("n", "<leader>gB", ":Gitsigns toggle_current_line_blame<CR>", { desc = "Toggle inline git blame" })
+
 -- File explorer (will be configured with neo-tree)
 map("n", "<leader>ee", ":Neotree toggle<CR>", { desc = "Toggle file explorer" })
 map("n", "\\", ":Neotree toggle<CR>", { desc = "Toggle file explorer" })
@@ -82,6 +86,15 @@ map("n", "<leader>cr", ":!cargo run<CR>", { desc = "Cargo run" })
 map("n", "<leader>ct", ":!cargo test<CR>", { desc = "Cargo test" })
 map("n", "<leader>cc", ":!cargo check<CR>", { desc = "Cargo check" })
 map("n", "<leader>cl", ":!cargo clippy<CR>", { desc = "Cargo clippy" })
+
+-- Python-specific keymaps
+map("n", "<leader>pr", ":!python %<CR>", { desc = "Python run current file" })
+map("n", "<leader>pt", ":!pytest<CR>", { desc = "Pytest run tests" })
+map("n", "<leader>pT", ":!pytest %<CR>", { desc = "Pytest run current file" })
+map("n", "<leader>py", ":!ty check<CR>", { desc = "Ty type check" })
+map("n", "<leader>pl", ":!ruff check .<CR>", { desc = "Ruff lint" })
+map("n", "<leader>pf", ":!ruff format .<CR>", { desc = "Ruff format" })
+map("n", "<leader>pi", ":!pip install -r requirements.txt<CR>", { desc = "Pip install requirements" })
 
 -- PostgreSQL/SQL-specific keymaps
 map("n", "<leader>se", ":!psql -U postgres -d %:r<CR>", { desc = "Execute SQL file with psql" })

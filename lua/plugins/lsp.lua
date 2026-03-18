@@ -25,6 +25,8 @@ return {
           "rust_analyzer",
           "lua_ls",
           "sqlls",
+          "pyright",
+          "ruff",
         },
         automatic_installation = true,
       })
@@ -112,8 +114,41 @@ return {
         }
       })
 
+      -- Configure Pyright for Python (type checking only, ruff handles linting/formatting)
+      vim.lsp.config("pyright", {
+        capabilities = capabilities,
+        settings = {
+          pyright = {
+            disableOrganizeImports = true,
+          },
+          python = {
+            analysis = {
+              typeCheckingMode = "strict",
+              autoSearchPaths = true,
+              useLibraryCodeForTypes = true,
+              diagnosticMode = "openFilesOnly",
+            },
+          },
+        },
+      })
+
+      -- Configure ty for Python (type checking by Astral)
+      vim.lsp.config("ty", {
+        capabilities = capabilities,
+      })
+
+      -- Configure Ruff for Python (linting and formatting)
+      vim.lsp.config("ruff", {
+        capabilities = capabilities,
+        init_options = {
+          settings = {
+            lineLength = 88,
+          },
+        },
+      })
+
       -- Enable the configured LSP servers
-      vim.lsp.enable({ "rust_analyzer", "lua_ls", "sqlls" })
+      vim.lsp.enable({ "rust_analyzer", "lua_ls", "sqlls", "pyright", "ty", "ruff" })
 
       -- Global mappings
       vim.keymap.set("n", "<space>e", vim.diagnostic.open_float)
