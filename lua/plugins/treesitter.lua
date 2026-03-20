@@ -25,6 +25,10 @@ return {
         "javascript",
         "typescript",
         "python",
+        "go",
+        "gomod",
+        "gosum",
+        "gowork",
         "sql",
       },
       -- Autoinstall languages that are not installed

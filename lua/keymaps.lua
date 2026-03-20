@@ -96,6 +96,16 @@ map("n", "<leader>pl", ":!ruff check .<CR>", { desc = "Ruff lint" })
 map("n", "<leader>pf", ":!ruff format .<CR>", { desc = "Ruff format" })
 map("n", "<leader>pi", ":!pip install -r requirements.txt<CR>", { desc = "Pip install requirements" })
 
+-- Go-specific keymaps
+map("n", "<leader>Gb", ":!go build ./...<CR>", { desc = "Go build" })
+map("n", "<leader>Gr", ":!go run %<CR>", { desc = "Go run current file" })
+map("n", "<leader>Gt", ":!go test ./...<CR>", { desc = "Go test" })
+map("n", "<leader>GT", ":!go test -v ./...<CR>", { desc = "Go test verbose" })
+map("n", "<leader>Gf", ":!gofmt -w %<CR>", { desc = "Go format current file" })
+map("n", "<leader>Gl", ":!golangci-lint run<CR>", { desc = "Go lint" })
+map("n", "<leader>Gm", ":!go mod tidy<CR>", { desc = "Go mod tidy" })
+map("n", "<leader>Gv", ":!go vet ./...<CR>", { desc = "Go vet" })
+
 -- PostgreSQL/SQL-specific keymaps
 map("n", "<leader>se", ":!psql -U postgres -d %:r<CR>", { desc = "Execute SQL file with psql" })
 map("n", "<leader>sp", ":!psql -U postgres<CR>", { desc = "Open psql prompt" })

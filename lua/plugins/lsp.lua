@@ -27,6 +27,7 @@ return {
           "sqlls",
           "pyright",
           "ruff",
+          "gopls",
         },
         automatic_installation = true,
       })
@@ -147,14 +148,32 @@ return {
         },
       })
 
+      -- Configure gopls for Go
+      vim.lsp.config("gopls", {
+        capabilities = capabilities,
+        settings = {
+          gopls = {
+            analyses = {
+              unusedparams = true,
+              shadow = true,
+            },
+            staticcheck = true,
+            gofumpt = true,
+          },
+        },
+      })
+
       -- Enable the configured LSP servers
-      vim.lsp.enable({ "rust_analyzer", "lua_ls", "sqlls", "pyright", "ty", "ruff" })
+      vim.lsp.enable({ "rust_analyzer", "lua_ls", "sqlls", "pyright", "ty", "ruff", "gopls" })
 
       -- Global mappings
-      vim.keymap.set("n", "<space>e", vim.diagnostic.open_float)
+      vim.keymap.set("n", "<space>sd", function()
+        vim.diagnostic.open_float({ max_width = 80, wrap = true })
+      end, { desc = "Show diagnostic" })
       vim.keymap.set("n", "[d", vim.diagnostic.goto_prev)
       vim.keymap.set("n", "]d", vim.diagnostic.goto_next)
       vim.keymap.set("n", "<space>q", vim.diagnostic.setloclist)
+      vim.keymap.set("n", "<space>fm", function() vim.lsp.buf.format({ async = true }) end, { desc = "Format code" })
 
       -- Use LspAttach autocommand to only map the following keys
       -- after the language server attaches to the current buffer
