@@ -11,7 +11,6 @@ map("n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Clear search highlights" })
 map("n", "[d", vim.diagnostic.goto_prev, { desc = "Go to previous diagnostic message" })
 map("n", "]d", vim.diagnostic.goto_next, { desc = "Go to next diagnostic message" })
 map("n", "<leader>e", vim.diagnostic.open_float, { desc = "Show diagnostic Error messages" })
-map("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic Quickfix list" })
 
 -- Better window navigation
 map("n", "<C-h>", "<C-w>h", { desc = "Move to left window" })
@@ -44,7 +43,6 @@ map("n", "k", "gk", { desc = "Move up by visual line" })
 
 -- Quit and save shortcuts
 map("n", "<leader>w", ":w<CR>", { desc = "Save file" })
-map("n", "<leader>q", ":q<CR>", { desc = "Quit" })
 map("n", "<leader>x", ":x<CR>", { desc = "Save and quit" })
 
 -- Split windows
@@ -69,16 +67,6 @@ map("n", "<leader>ff", ":Telescope find_files<CR>", { desc = "Find files" })
 map("n", "<leader>fg", ":Telescope live_grep<CR>", { desc = "Live grep" })
 map("n", "<leader>fb", ":Telescope buffers<CR>", { desc = "Find buffers" })
 map("n", "<leader>fh", ":Telescope help_tags<CR>", { desc = "Find help tags" })
-
--- LSP (these will work once LSP is configured)
-map("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition" })
-map("n", "gD", vim.lsp.buf.declaration, { desc = "Go to declaration" })
-map("n", "gi", vim.lsp.buf.implementation, { desc = "Go to implementation" })
-map("n", "gr", vim.lsp.buf.references, { desc = "Go to references" })
-map("n", "K", vim.lsp.buf.hover, { desc = "Show hover information" })
-map("n", "<leader>rn", vim.lsp.buf.rename, { desc = "Rename symbol" })
-map("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code action" })
-map("n", "<leader>f", vim.lsp.buf.format, { desc = "Format code" })
 
 -- Rust-specific keymaps (cargo commands)
 map("n", "<leader>cb", ":!cargo build<CR>", { desc = "Cargo build" })
@@ -112,3 +100,63 @@ map("n", "<leader>sp", ":!psql -U postgres<CR>", { desc = "Open psql prompt" })
 map("n", "<leader>sd", ":!pg_dump -U postgres -d %:r > %:r_backup.sql<CR>", { desc = "Dump database to SQL file" })
 map("n", "<leader>sr", ":!psql -U postgres -f %<CR>", { desc = "Run current SQL file" })
 map("n", "<leader>sc", ":!createdb -U postgres ", { desc = "Create new database (enter name)" })
+
+-- ============================================================================
+-- Generic build/run keymaps
+-- ============================================================================
+
+-- 1. Filetype-based run command (<leader>mr)
+local run_cmd = {
+  python = "python %",
+  go = "go run %",
+  rust = "cargo run",
+  c = "gcc % -o %:r && ./%:r",
+  cpp = "g++ % -o %:r && ./%:r",
+  java = "javac % && java %:r",
+  javascript = "node %",
+  typescript = "npx ts-node %",
+  lua = "lua %",
+  sh = "bash %",
+  zsh = "zsh %",
+  ruby = "ruby %",
+  perl = "perl %",
+  zig = "zig build-exe % && ./%:r",
+  haskell = "ghc % -o %:r && ./%:r",
+}
+
+map("n", "<leader>mr", function()
+  local ft = vim.bo.filetype
+  local cmd = run_cmd[ft]
+  if cmd then
+    vim.cmd("!" .. cmd)
+  else
+    vim.notify("No run command configured for filetype: " .. ft, vim.log.levels.WARN)
+  end
+end, { desc = "Run current file (filetype-based)" })
+
+-- 2. Filetype-based makeprg (<leader>mb)
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "*",
+  callback = function()
+    local makeprg_map = {
+      python = "python %",
+      go = "go build ./...",
+      rust = "cargo build",
+      c = "gcc % -o %:r",
+      cpp = "g++ % -o %:r",
+      java = "javac %",
+      typescript = "npx tsc",
+      zig = "zig build",
+      haskell = "ghc %",
+    }
+    local ft = vim.bo.filetype
+    if makeprg_map[ft] then
+      vim.bo.makeprg = makeprg_map[ft]
+    end
+  end,
+})
+
+map("n", "<leader>mb", ":make<CR>", { desc = "Build with :make (filetype-aware)" })
+
+-- 3. Prompt for a shell command (<leader>!)
+map("n", "<leader>!", ":!", { desc = "Run shell command (prompt)" })
