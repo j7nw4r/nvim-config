@@ -28,10 +28,17 @@ return {
           "pyright",
           "ruff",
           "gopls",
+          "ltex",
         },
         automatic_installation = true,
       })
     end,
+  },
+
+  -- LSP progress notifications
+  {
+    "j-hui/fidget.nvim",
+    opts = {},
   },
 
   -- LSP Configuration using Neovim 0.11+ native API
@@ -56,7 +63,8 @@ return {
               loadOutDirsFromCheck = true,
               runBuildScripts = true,
             },
-            checkOnSave = {
+            checkOnSave = true,
+            check = {
               allFeatures = true,
               command = "clippy",
               extraArgs = { "--no-deps" },
@@ -73,21 +81,11 @@ return {
         },
       })
 
-      -- Configure Lua LSP for Neovim configuration
+      -- Configure Lua LSP for Neovim configuration (lazydev.nvim handles workspace/globals)
       vim.lsp.config("lua_ls", {
         capabilities = capabilities,
         settings = {
           Lua = {
-            runtime = {
-              version = "LuaJIT",
-            },
-            diagnostics = {
-              globals = { "vim" },
-            },
-            workspace = {
-              library = vim.api.nvim_get_runtime_file("", true),
-              checkThirdParty = false,
-            },
             telemetry = {
               enable = false,
             },
@@ -163,16 +161,27 @@ return {
         },
       })
 
+      -- Configure LTeX for grammar/spell checking in markdown and text files
+      vim.lsp.config("ltex", {
+        capabilities = capabilities,
+        filetypes = { "markdown", "text", "gitcommit" },
+        settings = {
+          ltex = {
+            language = "en-US",
+          },
+        },
+      })
+
       -- Enable the configured LSP servers
-      vim.lsp.enable({ "rust_analyzer", "lua_ls", "sqlls", "pyright", "ty", "ruff", "gopls" })
+      vim.lsp.enable({ "rust_analyzer", "lua_ls", "sqlls", "pyright", "ty", "ruff", "gopls", "ltex" })
 
       -- Global mappings
-      vim.keymap.set("n", "<space>sd", function()
+      vim.keymap.set("n", "<space>se", function()
         vim.diagnostic.open_float({ max_width = 80, wrap = true })
-      end, { desc = "Show diagnostic" })
+      end, { desc = "Show diagnostic float" })
       vim.keymap.set("n", "[d", vim.diagnostic.goto_prev)
       vim.keymap.set("n", "]d", vim.diagnostic.goto_next)
-      vim.keymap.set("n", "<space>q", vim.diagnostic.setloclist)
+
       vim.keymap.set("n", "<space>fm", function() vim.lsp.buf.format({ async = true }) end, { desc = "Format code" })
 
       -- Use LspAttach autocommand to only map the following keys
