@@ -26,8 +26,8 @@ return {
     },
     cmd = "Neotree",
     keys = {
-      { "<leader>ee", ":Neotree toggle<CR>", { desc = "NeoTree toggle" } },
-      { "\\", ":Neotree toggle<CR>", { desc = "NeoTree toggle" } },
+      { "<leader>ee", ":Neotree reveal toggle<CR>", { desc = "NeoTree toggle (reveal current file)" } },
+      { "\\", ":Neotree reveal toggle<CR>", { desc = "NeoTree toggle (reveal current file)" } },
     },
     opts = {},
     config = function(_, opts)

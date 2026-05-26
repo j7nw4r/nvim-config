@@ -59,8 +59,8 @@ map("n", "<leader>gb", ":Gitsigns blame_line<CR>", { desc = "Git blame line" })
 map("n", "<leader>gB", ":Gitsigns toggle_current_line_blame<CR>", { desc = "Toggle inline git blame" })
 
 -- File explorer (will be configured with neo-tree)
-map("n", "<leader>ee", ":Neotree toggle<CR>", { desc = "Toggle file explorer" })
-map("n", "\\", ":Neotree toggle<CR>", { desc = "Toggle file explorer" })
+map("n", "<leader>ee", ":Neotree reveal toggle<CR>", { desc = "Toggle file explorer (reveal current file)" })
+map("n", "\\", ":Neotree reveal toggle<CR>", { desc = "Toggle file explorer (reveal current file)" })
 
 -- Telescope (will be configured later)
 map("n", "<leader>ff", ":Telescope find_files<CR>", { desc = "Find files" })
@@ -93,6 +93,15 @@ map("n", "<leader>Gf", ":!gofmt -w %<CR>", { desc = "Go format current file" })
 map("n", "<leader>Gl", ":!golangci-lint run<CR>", { desc = "Go lint" })
 map("n", "<leader>Gm", ":!go mod tidy<CR>", { desc = "Go mod tidy" })
 map("n", "<leader>Gv", ":!go vet ./...<CR>", { desc = "Go vet" })
+
+-- C/C++/CMake keymaps (capital C to avoid conflict with cargo's <leader>c*)
+map("n", "<leader>Cg", ":!cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON<CR>", { desc = "CMake generate (build/)" })
+map("n", "<leader>Cb", ":!cmake --build build<CR>", { desc = "CMake build" })
+map("n", "<leader>Ct", ":!ctest --test-dir build --output-on-failure<CR>", { desc = "CTest run" })
+map("n", "<leader>Cc", ":!cmake --build build --target clean<CR>", { desc = "CMake clean target" })
+map("n", "<leader>Cm", ":!make<CR>", { desc = "Make (cwd)" })
+map("n", "<leader>CM", ":!make clean<CR>", { desc = "Make clean (cwd)" })
+map("n", "<leader>Cr", ":!./build/", { desc = "Run binary from build/ (enter name)" })
 
 -- PostgreSQL/SQL-specific keymaps
 map("n", "<leader>se", ":!psql -U postgres -d %:r<CR>", { desc = "Execute SQL file with psql" })
