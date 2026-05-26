@@ -1,126 +1,131 @@
+-- nvim-treesitter `main` branch: parsers + queries only. Highlighting,
+-- indentation, and folding are enabled here via FileType autocmds using
+-- Neovim's built-in vim.treesitter.* API.
+
+local ensure_installed = {
+  "bash",
+  "c",
+  "c_sharp",
+  "cmake",
+  "cpp",
+  "css",
+  "diff",
+  "fsharp",
+  "go",
+  "gomod",
+  "gosum",
+  "gowork",
+  "html",
+  "javascript",
+  "json",
+  "lua",
+  "luadoc",
+  "make",
+  "markdown",
+  "markdown_inline",
+  "python",
+  "rust",
+  "sql",
+  "toml",
+  "typescript",
+  "vim",
+  "vimdoc",
+  "yaml",
+}
+
+-- Filetypes that should opt into treesitter indent. Parser name == filetype
+-- for everything we install, except `vimdoc` (filetype is `help`) and
+-- `c_sharp` (filetype is `cs`); those filetypes are appended explicitly.
+local indent_filetypes = vim.list_extend(vim.deepcopy(ensure_installed), { "help", "cs" })
+
 return {
-  -- Highlight, edit, and navigate code
   {
     "nvim-treesitter/nvim-treesitter",
-    dependencies = {
-      "nvim-treesitter/nvim-treesitter-textobjects",
-    },
+    branch = "main",
+    lazy = false,
     build = ":TSUpdate",
-    opts = {
-      ensure_installed = {
-        "bash",
-        "c",
-        "diff",
-        "html",
-        "lua",
-        "luadoc",
-        "markdown",
-        "vim",
-        "vimdoc",
-        "rust",
-        "toml",
-        "json",
-        "yaml",
-        "css",
-        "javascript",
-        "typescript",
-        "python",
-        "go",
-        "gomod",
-        "gosum",
-        "gowork",
-        "sql",
-      },
-      -- Autoinstall languages that are not installed
-      auto_install = true,
-      highlight = {
-        enable = true,
-        -- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
-        --  If you are experiencing weird indenting issues, add the language to
-        --  the list of additional_vim_regex_highlighting and disabled languages for indent.
-        additional_vim_regex_highlighting = { "ruby" },
-      },
-      indent = { enable = true, disable = { "ruby" } },
-      incremental_selection = {
-        enable = true,
-        keymaps = {
-          init_selection = "<C-space>",
-          node_incremental = "<C-space>",
-          scope_incremental = false,
-          node_decremental = "<bs>",
-        },
-      },
-      textobjects = {
-        select = {
-          enable = true,
-          lookahead = true, -- Automatically jump forward to textobj, similar to targets.vim
-          keymaps = {
-            -- You can use the capture groups defined in textobjects.scm
-            ["aa"] = "@parameter.outer",
-            ["ia"] = "@parameter.inner",
-            ["af"] = "@function.outer",
-            ["if"] = "@function.inner",
-            ["ac"] = "@class.outer",
-            ["ic"] = "@class.inner",
-            ["ii"] = "@conditional.inner",
-            ["ai"] = "@conditional.outer",
-            ["il"] = "@loop.inner",
-            ["al"] = "@loop.outer",
-            ["at"] = "@comment.outer",
-          },
-        },
-        move = {
-          enable = true,
-          set_jumps = true, -- whether to set jumps in the jumplist
-          goto_next_start = {
-            ["]m"] = "@function.outer",
-            ["]]"] = "@class.outer",
-            ["]o"] = "@loop.*",
-            ["]s"] = { query = "@scope", query_group = "locals", desc = "Next scope" },
-            ["]z"] = { query = "@fold", query_group = "folds", desc = "Next fold" },
-          },
-          goto_next_end = {
-            ["]M"] = "@function.outer",
-            ["]["] = "@class.outer",
-          },
-          goto_previous_start = {
-            ["[m"] = "@function.outer",
-            ["[["] = "@class.outer",
-          },
-          goto_previous_end = {
-            ["[M"] = "@function.outer",
-            ["[]"] = "@class.outer",
-          },
-          goto_next = {
-            ["]c"] = "@conditional.outer",
-          },
-          goto_previous = {
-            ["[c"] = "@conditional.outer",
-          }
-        },
-        swap = {
-          enable = true,
-          swap_next = {
-            ["<leader>a"] = "@parameter.inner",
-          },
-          swap_previous = {
-            ["<leader>A"] = "@parameter.inner",
-          },
-        },
-      },
-    },
-    config = function(_, opts)
-      -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
+    config = function()
+      require("nvim-treesitter").install(ensure_installed)
 
-      ---@diagnostic disable-next-line: missing-fields
-      require("nvim-treesitter.configs").setup(opts)
+      vim.api.nvim_create_autocmd("FileType", {
+        callback = function(args)
+          pcall(vim.treesitter.start, args.buf)
+          if vim.tbl_contains(indent_filetypes, vim.bo[args.buf].filetype) then
+            vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+          end
+        end,
+      })
+    end,
+  },
 
-      -- There are additional nvim-treesitter modules that you can use to interact
-      -- with nvim-treesitter. You should go explore a few and see what interests you:
-      --
-      --    - Incremental selection: Included, see `:help nvim-treesitter-incremental-selection-mod`
-      --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
-      --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
+  {
+    "nvim-treesitter/nvim-treesitter-textobjects",
+    branch = "main",
+    dependencies = { "nvim-treesitter/nvim-treesitter" },
+    event = "VeryLazy",
+    -- If you hit ftplugin keymap conflicts (e.g. `[m`/`]m` overridden by a
+    -- builtin filetype plugin), uncomment to disable them globally:
+    -- init = function() vim.g.no_plugin_maps = true end,
+    config = function()
+      require("nvim-treesitter-textobjects").setup({
+        select = { lookahead = true },
+        move = { set_jumps = true },
+      })
+
+      local select = require("nvim-treesitter-textobjects.select")
+      local move = require("nvim-treesitter-textobjects.move")
+      local swap = require("nvim-treesitter-textobjects.swap")
+
+      local function map_select(lhs, capture, group, desc)
+        vim.keymap.set({ "x", "o" }, lhs, function()
+          select.select_textobject(capture, group or "textobjects")
+        end, { desc = desc })
+      end
+
+      map_select("aa", "@parameter.outer", nil, "a parameter")
+      map_select("ia", "@parameter.inner", nil, "inner parameter")
+      map_select("af", "@function.outer", nil, "a function")
+      map_select("if", "@function.inner", nil, "inner function")
+      map_select("ac", "@class.outer", nil, "a class")
+      map_select("ic", "@class.inner", nil, "inner class")
+      map_select("ai", "@conditional.outer", nil, "a conditional")
+      map_select("ii", "@conditional.inner", nil, "inner conditional")
+      map_select("al", "@loop.outer", nil, "a loop")
+      map_select("il", "@loop.inner", nil, "inner loop")
+      map_select("at", "@comment.outer", nil, "a comment")
+
+      local function map_move(lhs, fn, capture, group, desc)
+        vim.keymap.set({ "n", "x", "o" }, lhs, function()
+          move[fn](capture, group or "textobjects")
+        end, { desc = desc })
+      end
+
+      map_move("]m", "goto_next_start", "@function.outer", nil, "Next function start")
+      map_move("]]", "goto_next_start", "@class.outer", nil, "Next class start")
+      map_move("]o", "goto_next_start", { "@loop.inner", "@loop.outer" }, nil, "Next loop start")
+      map_move("]s", "goto_next_start", "@local.scope", "locals", "Next scope")
+      map_move("]z", "goto_next_start", "@fold", "folds", "Next fold")
+
+      map_move("]M", "goto_next_end", "@function.outer", nil, "Next function end")
+      map_move("][", "goto_next_end", "@class.outer", nil, "Next class end")
+
+      map_move("[m", "goto_previous_start", "@function.outer", nil, "Prev function start")
+      map_move("[[", "goto_previous_start", "@class.outer", nil, "Prev class start")
+
+      map_move("[M", "goto_previous_end", "@function.outer", nil, "Prev function end")
+      map_move("[]", "goto_previous_end", "@class.outer", nil, "Prev class end")
+
+      -- Conditional motions use ]c/[c (not ]d/[d, which lsp.lua binds to
+      -- diagnostic navigation).
+      map_move("]c", "goto_next", "@conditional.outer", nil, "Next conditional")
+      map_move("[c", "goto_previous", "@conditional.outer", nil, "Prev conditional")
+
+      vim.keymap.set("n", "<leader>a", function()
+        swap.swap_next("@parameter.inner")
+      end, { desc = "Swap next parameter" })
+      vim.keymap.set("n", "<leader>A", function()
+        swap.swap_previous("@parameter.inner")
+      end, { desc = "Swap previous parameter" })
     end,
   },
 }
