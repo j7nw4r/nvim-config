@@ -14,7 +14,8 @@ This is a modern Neovim configuration using lazy.nvim as the plugin manager. The
 ### Plugin Structure
 
 Each plugin file in `lua/plugins/` follows the lazy.nvim plugin specification format:
-- `lsp.lua` - LSP setup with Mason for server management, multiple language servers (Rust, Python, Go, SQL, Lua, LTeX)
+- `lsp.lua` - LSP setup with Mason for server management; configures rust-analyzer, lua_ls, sqlls, postgres_lsp, pyright/ty/ruff, gopls, clangd, sourcekit (Swift), ltex, and fsautocomplete (F#). C# (Roslyn) is set up separately in `roslyn.lua`.
+- `roslyn.lua` - Roslyn-based C# language server (seblyng/roslyn.nvim). Not in the official Mason registry, so mason setup adds the Crashdummyy registry; install once with `:MasonInstall roslyn`. Requires Neovim >= 0.12.
 - `completion.lua` - nvim-cmp with LuaSnip, LSP completion, path/buffer completion
 - `conform.lua` - Code formatting with format-on-save (stylua, ruff, rustfmt, gofmt, sqlfluff)
 - `telescope.lua` - Fuzzy finder with fzf-native extension for files, grep, help, etc.
@@ -56,6 +57,17 @@ Multi-language configuration with dedicated keybindings per language:
 - `<leader>Gb` - go build, `<leader>Gr` - go run, `<leader>Gt` - go test
 - `<leader>Gf` - gofmt, `<leader>Gl` - golangci-lint, `<leader>Gm` - go mod tidy
 - LSP: gopls with staticcheck and gofumpt
+
+**C/C++/CMake** (`<leader>C` group):
+- `<leader>Cg` - cmake generate, `<leader>Cb` - cmake build, `<leader>Ct` - ctest
+- `<leader>Cm` - make, `<leader>CM` - make clean, `<leader>Cr` - run build artifact
+- LSP: clangd (clang-tidy, background index); debugging via codelldb
+
+**.NET (C# and F#)**:
+- C# uses the Roslyn server (`roslyn.lua`); run `:MasonInstall roslyn` once (the Crashdummyy registry is added in mason setup).
+- F# uses `fsautocomplete` (auto-installed via mason-lspconfig). `.fs`/`.fsx`/`.fsi` are mapped to the `fsharp` filetype in `options.lua` because Neovim defaults `.fs` to `forth`.
+- Treesitter parsers `c_sharp` and `fsharp` provide highlighting/indentation.
+- Debugging uses `netcoredbg` (adapter type `coreclr`, auto-installed via mason-nvim-dap); launch/attach configs are in `dap.lua` under `dap.configurations.cs`/`.fsharp`.
 
 **SQL/PostgreSQL** (`<leader>s` group):
 - `<leader>sr` - run SQL file, `<leader>sp` - open psql, `<leader>sd` - pg_dump
