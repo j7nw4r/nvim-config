@@ -63,6 +63,16 @@ vim.opt.swapfile = false
 vim.opt.splitright = true
 vim.opt.splitbelow = true
 
+-- Filetype detection: Neovim defaults `.fs` to `forth`, so map the F#
+-- extensions to `fsharp` (otherwise fsautocomplete never attaches).
+vim.filetype.add({
+  extension = {
+    fs = "fsharp",
+    fsx = "fsharp",
+    fsi = "fsharp",
+  },
+})
+
 -- Filetype-specific
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "markdown",

@@ -4,6 +4,13 @@ return {
     "williamboman/mason.nvim",
     config = function()
       require("mason").setup({
+        -- The Roslyn C# server (see roslyn.lua) lives in a third-party
+        -- registry, not the official mason-org one. Both are listed so
+        -- `:MasonInstall roslyn` resolves while everything else still works.
+        registries = {
+          "github:mason-org/mason-registry",
+          "github:Crashdummyy/mason-registry",
+        },
         ui = {
           icons = {
             package_installed = "✓",
@@ -25,10 +32,13 @@ return {
           "rust_analyzer",
           "lua_ls",
           "sqlls",
+          "postgres_lsp",
           "pyright",
           "ruff",
           "gopls",
+          "clangd",
           "ltex",
+          "fsautocomplete",
         },
         automatic_installation = true,
       })
@@ -66,8 +76,10 @@ return {
             checkOnSave = true,
             check = {
               allFeatures = true,
+              allTargets = true,
               command = "clippy",
               extraArgs = { "--no-deps" },
+              features = "all",
             },
             procMacro = {
               enable = true,
@@ -93,7 +105,7 @@ return {
         },
       })
 
-      -- Configure SQL LSP
+      -- Configure SQL LSP (generic SQL — sql-language-server)
       vim.lsp.config("sqlls", {
         capabilities = capabilities,
         settings = {
@@ -111,6 +123,12 @@ return {
             }
           }
         }
+      })
+
+      -- Configure Postgres LSP (supabase-community/postgres-language-server)
+      -- Attaches only when a `postgres-language-server.jsonc` workspace marker is present.
+      vim.lsp.config("postgres_lsp", {
+        capabilities = capabilities,
       })
 
       -- Configure Pyright for Python (type checking only, ruff handles linting/formatting)
@@ -146,6 +164,33 @@ return {
         },
       })
 
+      -- Configure clangd for C/C++
+      vim.lsp.config("clangd", {
+        capabilities = capabilities,
+        cmd = {
+          "clangd",
+          "--background-index",
+          "--clang-tidy",
+          "--header-insertion=iwyu",
+          "--completion-style=detailed",
+          "--function-arg-placeholders",
+          "--fallback-style=llvm",
+        },
+        init_options = {
+          usePlaceholders = true,
+          completeUnimported = true,
+          clangdFileStatus = true,
+        },
+      })
+
+      -- Configure sourcekit-lsp for Swift (ships with the Swift toolchain / Xcode)
+      vim.lsp.config("sourcekit", {
+        capabilities = capabilities,
+        cmd = { "xcrun", "sourcekit-lsp" },
+        filetypes = { "swift", "objc", "objcpp", "c", "cpp" },
+        root_markers = { "Package.swift", "*.xcodeproj", "*.xcworkspace", "compile_commands.json", ".git" },
+      })
+
       -- Configure gopls for Go
       vim.lsp.config("gopls", {
         capabilities = capabilities,
@@ -172,8 +217,20 @@ return {
         },
       })
 
-      -- Enable the configured LSP servers
-      vim.lsp.enable({ "rust_analyzer", "lua_ls", "sqlls", "pyright", "ty", "ruff", "gopls", "ltex" })
+      -- Merge nvim-cmp capabilities into the Roslyn C# server. The actual
+      -- cmd/filetypes/root_dir and `vim.lsp.enable("roslyn")` are supplied by
+      -- the roslyn.nvim plugin (see roslyn.lua); this only augments it.
+      vim.lsp.config("roslyn", {
+        capabilities = capabilities,
+      })
+
+      -- Configure fsautocomplete for F# (cmd/root_markers ship with lspconfig).
+      vim.lsp.config("fsautocomplete", {
+        capabilities = capabilities,
+      })
+
+      -- Enable the configured LSP servers (roslyn is enabled by its own plugin)
+      vim.lsp.enable({ "rust_analyzer", "lua_ls", "sqlls", "postgres_lsp", "pyright", "ty", "ruff", "gopls", "clangd", "sourcekit", "ltex", "fsautocomplete" })
 
       -- Global mappings
       vim.keymap.set("n", "<space>se", function()
@@ -198,7 +255,7 @@ return {
           vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
           vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
           vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
-          vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, opts)
+          vim.keymap.set("n", "<leader>k", vim.lsp.buf.signature_help, opts)
           vim.keymap.set("n", "<space>wa", vim.lsp.buf.add_workspace_folder, opts)
           vim.keymap.set("n", "<space>wr", vim.lsp.buf.remove_workspace_folder, opts)
           vim.keymap.set("n", "<space>wl", function()
