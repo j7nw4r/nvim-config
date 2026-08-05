@@ -1,14 +1,7 @@
 return {
-  -- Color scheme
-  {
-    "ellisonleao/gruvbox.nvim",
-    priority = 1000, -- Make sure to load this before all the other start plugins.
-    init = function()
-      vim.cmd.colorscheme 'gruvbox'
-
-      vim.cmd.hi 'Comment gui=none'
-    end,
-  },
+  -- Color scheme: matches the default Ghostty terminal theme.
+  -- Defined in ~/.config/nvim/colors/ghostty.lua (no plugin required); applied
+  -- after lazy finishes loading in init.lua so it overrides plugin highlights.
 
   -- Status line
   {
@@ -17,7 +10,7 @@ return {
     config = function()
       require("lualine").setup({
         options = {
-          theme = "gruvbox",
+          theme = "auto",
           component_separators = '|',
           section_separators = '',
         },

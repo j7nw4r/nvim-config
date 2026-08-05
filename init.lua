@@ -56,3 +56,7 @@ require("lazy").setup({
     },
   },
 })
+
+-- Apply the colorscheme after plugins load so it overrides their highlights.
+-- 'ghostty' is defined in colors/ghostty.lua and matches the terminal theme.
+vim.cmd.colorscheme("ghostty")

@@ -26,14 +26,14 @@ Each plugin file in `lua/plugins/` follows the lazy.nvim plugin specification fo
 - `lazydev.lua` - Lua/Neovim API type hints for development
 - `writing.lua` - Zen mode and Twilight for distraction-free writing
 - `render-markdown.lua` - In-buffer markdown rendering
-- `ui.lua` - UI enhancements including colorscheme (gruvbox), lualine, gitsigns, autopairs, surround, commenting, indent guides, which-key
+- `ui.lua` - UI enhancements: lualine (theme `auto`), gitsigns, autopairs, surround, commenting, indent guides, which-key. The colorscheme itself lives in `colors/ghostty.lua` and is applied at the end of `init.lua`.
 
 ### Key Configuration Details
 
 - **Leader key**: Space (` `)
 - **Plugin manager**: lazy.nvim with automatic plugin updates enabled
 - **LSP servers**: Automatically installs rust_analyzer, lua_ls, sqlls, pyright, ruff, gopls, ltex via Mason; ty also configured
-- **Colorscheme**: gruvbox
+- **Colorscheme**: `ghostty` (custom, in `colors/ghostty.lua`) - matches the default Ghostty terminal palette (One Dark bg + Tomorrow-Night ANSI colors). Re-sync instructions are in the file header.
 - **File explorer**: neo-tree (toggle with `<leader>ee` or `\`), oil.nvim as alternative
 - **Fuzzy finder**: Telescope with fzf-native
 - **Completion**: nvim-cmp with LSP, snippets, path, and buffer sources
