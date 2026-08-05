@@ -65,13 +65,24 @@ vim.opt.splitbelow = true
 
 -- Filetype detection: Neovim defaults `.fs` to `forth`, so map the F#
 -- extensions to `fsharp` (otherwise fsautocomplete never attaches).
+-- C++ projects also use extensionless standard-library headers.
 vim.filetype.add({
   extension = {
     fs = "fsharp",
     fsx = "fsharp",
     fsi = "fsharp",
+    ipp = "cpp",
+    tpp = "cpp",
+    ixx = "cpp",
+    cppm = "cpp",
   },
 })
+
+-- Read a project-local `.nvim.lua` when one is present. Neovim asks to trust
+-- the file the first time and remembers the answer, so an untrusted repo
+-- cannot run code. C++ repositories use this to set the cmake flags their
+-- build needs (see lua/cmake.lua).
+vim.opt.exrc = true
 
 -- Filetype-specific
 vim.api.nvim_create_autocmd("FileType", {

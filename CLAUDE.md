@@ -7,8 +7,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is a modern Neovim configuration using lazy.nvim as the plugin manager. The configuration is organized with a modular structure:
 
 - `init.lua` - Main entry point that bootstraps lazy.nvim, sets leader keys, loads core configs, and sets up plugin management
-- `lua/options.lua` - Core Neovim options and settings (indentation, visual preferences, search, folding, performance)
+- `lua/options.lua` - Core Neovim options and settings (indentation, visual preferences, search, folding, performance). Also enables `exrc` for project-local `.nvim.lua` files.
 - `lua/keymaps.lua` - Global key mappings and shortcuts
+- `lua/cmake.lua` - Asynchronous CMake driver (configure, build, ctest, run) used by the `<leader>C` maps
 - `lua/plugins/` - Modular plugin configurations, each file returns a table of plugin specs
 
 ### Plugin Structure
@@ -59,9 +60,31 @@ Multi-language configuration with dedicated keybindings per language:
 - LSP: gopls with staticcheck and gofumpt
 
 **C/C++/CMake** (`<leader>C` group):
-- `<leader>Cg` - cmake generate, `<leader>Cb` - cmake build, `<leader>Ct` - ctest
-- `<leader>Cm` - make, `<leader>CM` - make clean, `<leader>Cr` - run build artifact
-- LSP: clangd (clang-tidy, background index); debugging via codelldb
+- `<leader>Cg` - configure, `<leader>Cb` - build, `<leader>CB` - build one target (picker)
+- `<leader>Ct` - ctest all, `<leader>CT` - ctest matching a regex, `<leader>Cc` - clean target
+- `<leader>Cr` - pick and run a build artifact, `<leader>Co` - output buffer, `<leader>Cx` - stop the job
+- `<leader>Cm` - make, `<leader>CM` - make clean
+- `<leader>Ch` - switch source/header, `<leader>Ci` - toggle inlay hints, `<leader>Cy` - clangd symbol info (these three appear only when clangd attaches)
+- LSP: clangd (clang-tidy, background index at low priority, `--header-insertion=never`); debugging via codelldb
+- Formatting: conform runs `clang-format-11` when it is installed, otherwise `clang-format`. Azure repositories gate CI on version 11, and newer LLVM defaults produce a different result.
+
+### The CMake driver (`lua/cmake.lua`)
+
+The `<leader>C` maps call this module instead of shelling out with `:!`, because a vcpkg manifest restore can run for a long time and `:!` blocks the editor.
+
+- Every command runs through `vim.system`, streams into a `cmake://output` scratch buffer, and fills the quickfix list on exit. The quickfix opens by itself when the command fails.
+- `M.root()` returns the git root when that directory holds a CMakeLists.txt, and otherwise the nearest CMakeLists.txt ancestor. A monorepo such as azure-sdk-for-cpp configures from the top even though intermediate directories hold no CMakeLists.txt.
+- Configure always passes `-DCMAKE_EXPORT_COMPILE_COMMANDS=ON` and writes to `<root>/build/`. clangd searches parent directories and their `build/` subdirectory, so it finds the compilation database with no symlink and no `.clangd` file.
+- When the root holds a `vcpkg.json`, configure adds `-DCMAKE_TOOLCHAIN_FILE=<vcpkg>/scripts/buildsystems/vcpkg.cmake`. It looks at `$VCPKG_ROOT`, then `vcpkg` on PATH, then `~/vcpkg`.
+- Ninja is used when it is installed.
+
+Projects tune it with `vim.g.cmake_configure_args` (a table of extra `-D` flags), `vim.g.cmake_build_dir`, and `vim.g.cmake_generator`.
+
+### Project-local configuration (`exrc`)
+
+`vim.opt.exrc` is on in `options.lua`. Neovim reads a `.nvim.lua` in the current directory and asks to trust it once. Use it for build flags a single repository needs, and add the file to that repository's `.git/info/exclude` so it stays out of git.
+
+`~/Dev/azure-sdk-for-cpp/.nvim.lua` is the worked example: its CMakePresets.json carries only Windows and Linux presets, so the macOS checkout sets `BUILD_TESTING`, `BUILD_SAMPLES`, `BUILD_TRANSPORT_CURL`, and `WARNINGS_AS_ERRORS=OFF` by hand. The last one matters because Apple Clang 21 added `-Wunnecessary-virtual-specifier`, which fires inside azure-core-amqp and stops a `-Werror` build; CI runs older compilers and keeps the flag on.
 
 **.NET (C# and F#)**:
 - C# uses the Roslyn server (`roslyn.lua`); run `:MasonInstall roslyn` once (the Crashdummyy registry is added in mason setup).

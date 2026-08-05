@@ -83,6 +83,8 @@ return {
       -- Document existing key chains
       require("which-key").add {
         { "<leader>c", group = "[C]argo" },
+        { "<leader>C", group = "[C]/C++ and CMake" },
+        { "<leader>d", group = "[D]ebug (DAP)" },
         { "<leader>e", group = "[E]xplorer" },
         { "<leader>f", group = "[F]ind" },
         { "<leader>g", group = "[G]it" },

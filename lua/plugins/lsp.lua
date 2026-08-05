@@ -164,17 +164,32 @@ return {
         },
       })
 
-      -- Configure clangd for C/C++
+      -- Configure clangd for C/C++.
+      --
+      -- clangd is useless without a compilation database. It searches the
+      -- parents of the edited file and a `build/` subdirectory of each parent,
+      -- so a CMake project configured with -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+      -- into `<root>/build/` is found automatically. `<leader>Cg` does that.
       vim.lsp.config("clangd", {
         capabilities = capabilities,
         cmd = {
           "clangd",
           "--background-index",
+          -- Cap indexing threads. A monorepo such as azure-sdk-for-cpp has
+          -- hundreds of translation units and will otherwise take the machine.
+          "--background-index-priority=low",
+          "-j=4",
           "--clang-tidy",
-          "--header-insertion=iwyu",
+          -- `iwyu` guesses an include path from the index and often picks a
+          -- private internal header over the public one. Completion still
+          -- works; only the automatic `#include` is off.
+          "--header-insertion=never",
           "--completion-style=detailed",
+          "--all-scopes-completion",
           "--function-arg-placeholders",
-          "--fallback-style=llvm",
+          "--pch-storage=memory",
+          -- Read the repository .clang-format when formatting through the LSP.
+          "--fallback-style=file",
         },
         init_options = {
           usePlaceholders = true,
@@ -183,12 +198,18 @@ return {
         },
       })
 
-      -- Configure sourcekit-lsp for Swift (ships with the Swift toolchain / Xcode)
+      -- Configure sourcekit-lsp for Swift (ships with the Swift toolchain / Xcode).
+      --
+      -- Do not list c/cpp here and do not use `.git` as a root marker. Both
+      -- together made sourcekit attach to every C++ file in any git
+      -- repository, alongside clangd, which produced two sets of diagnostics
+      -- and two completion sources. Swift interop with C/C++ headers still
+      -- works inside a real Swift package.
       vim.lsp.config("sourcekit", {
         capabilities = capabilities,
         cmd = { "xcrun", "sourcekit-lsp" },
-        filetypes = { "swift", "objc", "objcpp", "c", "cpp" },
-        root_markers = { "Package.swift", "*.xcodeproj", "*.xcworkspace", "compile_commands.json", ".git" },
+        filetypes = { "swift", "objc", "objcpp" },
+        root_markers = { "Package.swift", "*.xcodeproj", "*.xcworkspace", "buildServer.json" },
       })
 
       -- Configure gopls for Go
@@ -268,6 +289,31 @@ return {
           vim.keymap.set("n", "<space>f", function()
             vim.lsp.buf.format { async = true }
           end, opts)
+
+          -- clangd extensions. `switchSourceHeader` is not part of the LSP
+          -- specification, so it is requested by hand rather than through
+          -- vim.lsp.buf.
+          local client = vim.lsp.get_client_by_id(ev.data.client_id)
+          if client and client.name == "clangd" then
+            vim.keymap.set("n", "<leader>Ch", function()
+              local params = vim.lsp.util.make_text_document_params(ev.buf)
+              client:request("textDocument/switchSourceHeader", params, function(err, result)
+                if err or not result then
+                  vim.notify("No matching source or header file", vim.log.levels.WARN)
+                  return
+                end
+                vim.cmd.edit(vim.uri_to_fname(result))
+              end, ev.buf)
+            end, vim.tbl_extend("force", opts, { desc = "Switch source/header" }))
+
+            vim.keymap.set("n", "<leader>Ci", function()
+              vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = ev.buf }), { bufnr = ev.buf })
+            end, vim.tbl_extend("force", opts, { desc = "Toggle inlay hints" }))
+
+            vim.keymap.set("n", "<leader>Cy", function()
+              vim.cmd("LspClangdShowSymbolInfo")
+            end, vim.tbl_extend("force", opts, { desc = "clangd symbol info" }))
+          end
         end,
       })
     end,

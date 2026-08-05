@@ -94,14 +94,28 @@ map("n", "<leader>Gl", ":!golangci-lint run<CR>", { desc = "Go lint" })
 map("n", "<leader>Gm", ":!go mod tidy<CR>", { desc = "Go mod tidy" })
 map("n", "<leader>Gv", ":!go vet ./...<CR>", { desc = "Go vet" })
 
--- C/C++/CMake keymaps (capital C to avoid conflict with cargo's <leader>c*)
-map("n", "<leader>Cg", ":!cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON<CR>", { desc = "CMake generate (build/)" })
-map("n", "<leader>Cb", ":!cmake --build build<CR>", { desc = "CMake build" })
-map("n", "<leader>Ct", ":!ctest --test-dir build --output-on-failure<CR>", { desc = "CTest run" })
-map("n", "<leader>Cc", ":!cmake --build build --target clean<CR>", { desc = "CMake clean target" })
+-- C/C++/CMake keymaps (capital C to avoid conflict with cargo's <leader>c*).
+-- These drive lua/cmake.lua, which runs asynchronously, honours the vcpkg
+-- toolchain file, and fills the quickfix list. `<leader>Ch`, `<leader>Ci`, and
+-- `<leader>Cy` are added by lsp.lua when clangd attaches.
+local cmake = require("cmake")
+cmake.setup()
+
+map("n", "<leader>Cg", function() cmake.configure() end, { desc = "CMake configure (async)" })
+map("n", "<leader>Cb", function() cmake.build() end, { desc = "CMake build" })
+map("n", "<leader>CB", function() cmake.build_prompt() end, { desc = "CMake build a target" })
+map("n", "<leader>Ct", function() cmake.test() end, { desc = "CTest run all" })
+map("n", "<leader>CT", function()
+  vim.ui.input({ prompt = "ctest -R " }, function(filter)
+    if filter then cmake.test(filter) end
+  end)
+end, { desc = "CTest run matching" })
+map("n", "<leader>Cc", function() cmake.build("clean") end, { desc = "CMake clean target" })
+map("n", "<leader>Cr", function() cmake.run_binary() end, { desc = "Run a build artifact" })
+map("n", "<leader>Co", function() cmake.open_output() end, { desc = "CMake output buffer" })
+map("n", "<leader>Cx", function() cmake.stop() end, { desc = "Stop the cmake job" })
 map("n", "<leader>Cm", ":!make<CR>", { desc = "Make (cwd)" })
 map("n", "<leader>CM", ":!make clean<CR>", { desc = "Make clean (cwd)" })
-map("n", "<leader>Cr", ":!./build/", { desc = "Run binary from build/ (enter name)" })
 
 -- PostgreSQL/SQL-specific keymaps
 map("n", "<leader>se", ":!psql -U postgres -d %:r<CR>", { desc = "Execute SQL file with psql" })
