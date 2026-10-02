@@ -99,7 +99,7 @@ Projects tune it with `vim.g.cmake_configure_args` (a table of extra `-D` flags)
 
 Dadbod adds database queries and schema browsing. The database sidebar also uses the `<leader>q` group. Its plugins load when a database command runs or an SQL buffer opens.
 
-- `<leader>qu` opens or closes the database sidebar.
+- `|` (Shift plus backslash) or `<leader>qu` opens or closes the database sidebar.
 - `<leader>qa` adds a connection. The UI saves connections and queries under Neovim's data directory in `dadbod-ui/`.
 - `<leader>qf` finds the current query buffer in the sidebar.
 - Run `:DBUI` to browse connections, schemas, tables, and saved queries. Press `?` in the sidebar for its mappings.

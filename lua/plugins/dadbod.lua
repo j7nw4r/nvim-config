@@ -8,6 +8,7 @@ return {
     dependencies = { "tpope/vim-dadbod" },
     cmd = { "DBUI", "DBUIToggle", "DBUIAddConnection", "DBUIFindBuffer" },
     keys = {
+      { "|", "<cmd>DBUIToggle<CR>", desc = "Toggle database UI" },
       { "<leader>qu", "<cmd>DBUIToggle<CR>", desc = "Toggle database UI" },
       { "<leader>qa", "<cmd>DBUIAddConnection<CR>", desc = "Add database connection" },
       { "<leader>qf", "<cmd>DBUIFindBuffer<CR>", desc = "Find query in database UI" },
