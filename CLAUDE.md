@@ -18,6 +18,7 @@ Each plugin file in `lua/plugins/` follows the lazy.nvim plugin specification fo
 - `lsp.lua` - LSP setup with Mason for server management; configures rust-analyzer, lua_ls, sqlls, postgres_lsp, pyright/ty/ruff, gopls, clangd, sourcekit (Swift), ltex, and fsautocomplete (F#). C# (Roslyn) is set up separately in `roslyn.lua`.
 - `roslyn.lua` - Roslyn-based C# language server (seblyng/roslyn.nvim). Not in the official Mason registry, so mason setup adds the Crashdummyy registry; install once with `:MasonInstall roslyn`. Requires Neovim >= 0.12.
 - `completion.lua` - nvim-cmp with LuaSnip, LSP completion, path/buffer completion
+- `dadbod.lua` - Database queries, a database sidebar, and SQL completion through nvim-cmp
 - `conform.lua` - Code formatting with format-on-save (stylua, ruff, rustfmt, gofmt, sqlfluff)
 - `telescope.lua` - Fuzzy finder with fzf-native extension for files, grep, help, etc.
 - `treesitter.lua` - Syntax highlighting, text objects, incremental selection
@@ -95,6 +96,17 @@ Projects tune it with `vim.g.cmake_configure_args` (a table of extra `-D` flags)
 **SQL/PostgreSQL** (`<leader>s` group):
 - `<leader>sr` - run SQL file, `<leader>sp` - open psql, `<leader>sd` - pg_dump
 - LSP: sqlls with lint rules
+
+Dadbod adds database queries and schema browsing. The database sidebar also uses the `<leader>q` group. Its plugins load when a database command runs or an SQL buffer opens.
+
+- `<leader>qu` opens or closes the database sidebar.
+- `<leader>qa` adds a connection. The UI saves connections and queries under Neovim's data directory in `dadbod-ui/`.
+- `<leader>qf` finds the current query buffer in the sidebar.
+- Run `:DBUI` to browse connections, schemas, tables, and saved queries. Press `?` in the sidebar for its mappings.
+- In a query buffer that the UI creates, `:w` executes the query. Press `<leader>W` to save a query for later use.
+- SQL, MySQL, and PL/SQL buffers use database completion alongside the existing LSP, snippet, path, and buffer sources.
+
+Dadbod uses database command-line clients. Install `psql` for PostgreSQL or `sqlite3` for SQLite. Use `:DBUIAddConnection` or export `DBUI_URL` before starting Neovim. `DBUI_NAME` sets the connection name. For an SQL file outside the UI, set `b:db` to its database URL or export `DATABASE_URL`. Keep connection URLs out of this repository.
 
 **Writing/Markdown**: LTeX grammar checking, zen mode, render-markdown
 

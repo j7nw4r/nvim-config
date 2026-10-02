@@ -90,6 +90,7 @@ return {
         { "<leader>g", group = "[G]it" },
         { "<leader>G", group = "[G]o" },
         { "<leader>p", group = "[P]ython" },
+        { "<leader>q", group = "S[Q]L" },
         { "<leader>r", group = "[R]ename" },
         { "<leader>s", group = "[S]earch/SQL" },
         { "<leader>w", group = "[W]indow" },

@@ -138,11 +138,15 @@ return {
               luasnip = "[LuaSnip]",
               nvim_lua = "[Lua]",
               latex_symbols = "[LaTeX]",
+              ["vim-dadbod-completion"] = "[DB]",
             })[entry.source.name]
             return vim_item
           end
         },
       }
+      cmp.setup.filetype({ "sql", "mysql", "plsql" }, {
+        sources = vim.list_extend({ { name = "vim-dadbod-completion" } }, vim.deepcopy(cmp.get_config().sources)),
+      })
     end,
   },
 }
